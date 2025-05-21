@@ -14,9 +14,71 @@ This project provides a machine learning model to predict apartment prices in Mo
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
-- [Docker](https://www.docker.com/products/docker-desktop/)
-- [Docker Compose](https://docs.docker.com/compose/install/) (usually included with Docker Desktop)
+### Installing Docker Desktop
+
+#### Windows
+1. Visit [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
+2. Click "Download for Windows"
+3. Double-click the downloaded installer (.exe)
+4. Follow the installation wizard
+5. Ensure "WSL 2" is installed when prompted
+6. After installation, restart your computer
+7. Docker Desktop will start automatically
+
+#### macOS
+1. Visit [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/)
+2. Click "Download for Mac"
+3. Choose your chip (Apple or Intel)
+4. Double-click the downloaded .dmg file
+5. Drag Docker to Applications
+6. Open Docker from Applications folder
+7. Follow the installation prompts
+
+#### Linux
+1. For Ubuntu/Debian:
+```bash
+# Add Docker's official GPG key
+sudo apt-get update
+sudo apt-get install ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Add the repository to Apt sources
+echo \
+  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Install Docker packages
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+2. Verify installation:
+```bash
+docker --version
+docker compose version
+```
+
+### System Requirements
+
+- **Windows**:
+  - Windows 10/11 64-bit: Pro, Enterprise, or Education (Build 18362 or later)
+  - WSL 2 (Windows Subsystem for Linux 2)
+  - 4GB RAM (8GB recommended)
+  - CPU with hardware virtualization support
+
+- **macOS**:
+  - macOS 11 or newer (Intel or Apple Silicon)
+  - At least 4GB RAM (8GB recommended)
+  - VirtualBox prior to version 6.0 must not be installed
+
+- **Linux**:
+  - 64-bit kernel and CPU support for virtualization
+  - 4GB RAM (8GB recommended)
+  - systemd init system
+  - KVM virtualization support
 
 ## Quick Start
 
@@ -120,6 +182,67 @@ The following environment variables can be configured in docker-compose.yml:
 - `MAX_WORKERS`: Number of worker processes (default: 4)
 - `WORKERS_PER_CORE`: Workers per CPU core (default: 1)
 - `TIMEOUT`: Worker timeout in seconds (default: 120)
+
+## Troubleshooting Docker Installation
+
+### Windows
+1. **WSL 2 Issues**
+   - Run PowerShell as Administrator and execute:
+   ```powershell
+   wsl --update
+   ```
+   - If WSL is not installed:
+   ```powershell
+   wsl --install
+   ```
+
+2. **Virtualization Issues**
+   - Enable virtualization in BIOS/UEFI
+   - Ensure Hyper-V is enabled:
+   ```powershell
+   Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
+   ```
+
+3. **Docker Desktop Won't Start**
+   - Reset Docker to factory defaults
+   - Ensure all Windows updates are installed
+   - Check Windows Security settings
+
+### macOS
+1. **Installation Fails**
+   - Clear existing Docker data:
+   ```bash
+   rm -rf ~/.docker
+   ```
+   - Reset Docker preferences
+   - Ensure sufficient disk space (at least 10GB free)
+
+2. **Performance Issues**
+   - Adjust resource allocation in Docker Desktop settings
+   - Clear unused Docker data:
+   ```bash
+   docker system prune -a
+   ```
+
+### Linux
+1. **Permission Issues**
+   - Add user to docker group:
+   ```bash
+   sudo usermod -aG docker $USER
+   newgrp docker
+   ```
+
+2. **Service Won't Start**
+   - Check Docker service status:
+   ```bash
+   sudo systemctl status docker
+   ```
+   - Restart Docker service:
+   ```bash
+   sudo systemctl restart docker
+   ```
+
+For additional help, visit the [Docker Documentation](https://docs.docker.com/) or [Docker Forums](https://forums.docker.com/).
 
 ## Contributing
 
