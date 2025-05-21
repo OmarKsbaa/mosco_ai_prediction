@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi.staticfiles import StaticFiles
 import joblib
 import numpy as np
 
@@ -11,6 +13,18 @@ app = FastAPI(
     description="API for predicting apartment prices in Moscow and Moscow region",
     version="1.0.0"
 )
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class ApartmentFeatures(BaseModel):
     minutes_to_metro: float
