@@ -1,7 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
 import joblib
 import numpy as np
 
@@ -23,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
+# Mount static files only for /static path
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class ApartmentFeatures(BaseModel):
@@ -71,6 +72,8 @@ async def predict_price(features: ApartmentFeatures):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+from fastapi.responses import RedirectResponse
+
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Moscow Apartment Price Prediction API"}
+    return RedirectResponse(url="/static/index.html")
