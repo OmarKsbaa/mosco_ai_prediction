@@ -7,7 +7,7 @@ import joblib
 import numpy as np
 
 # Load the trained model
-model = joblib.load('final_model.pkl')
+model = joblib.load('Moscowregion.pkl')
 
 app = FastAPI(
     title="Moscow Apartment Price Prediction API",

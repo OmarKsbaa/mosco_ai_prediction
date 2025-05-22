@@ -9,7 +9,7 @@ services:
       - "8000:8000"
     volumes:
       - ./static:/app/static
-      - ./final_model.pkl:/app/final_model.pkl
+      - ./Moscowregion.pkl:/app/Moscowregion.pkl
     environment:
       - PYTHONUNBUFFERED=1
       - MAX_WORKERS=4

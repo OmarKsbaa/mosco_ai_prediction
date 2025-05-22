@@ -167,7 +167,7 @@ uvicorn app:app --reload
 ```
 .
 ├── app.py                 # FastAPI application
-├── final_model.pkl        # Trained machine learning model
+├── Moscowregion.pkl        # Trained machine learning model
 ├── requirements.txt       # Python dependencies
 ├── static/               # Static files
 │   └── index.html        # Web interface
