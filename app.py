@@ -6,10 +6,62 @@ from pydantic import BaseModel
 import joblib
 import numpy as np
 import tensorflow as tf
+import os
+import logging
 
-# Load both models
-model1 = joblib.load('Moscowregion.pkl')
-model2 = tf.keras.models.load_model('model2.h5')
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Custom model loading functions with error handling
+def load_traditional_model(path):
+    try:
+        return joblib.load(path)
+    except Exception as e:
+        logger.error(f"Error loading traditional model: {str(e)}")
+        raise RuntimeError(f"Failed to load traditional model: {str(e)}")
+
+def load_deep_learning_model(path):
+    try:
+        # Configure TensorFlow to use CPU and reduce warnings
+        tf.config.set_visible_devices([], 'GPU')
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+        
+        # Load the model weights without the architecture
+        model = tf.keras.Sequential([
+            tf.keras.layers.Input(shape=(11,), name='input_layer'),
+            tf.keras.layers.Dense(64, activation='relu'),
+            tf.keras.layers.Dense(32, activation='relu'),
+            tf.keras.layers.Dense(1)
+        ])
+        
+        # Try to load the weights
+        try:
+            model.load_weights(path)
+        except:
+            # If direct weight loading fails, try loading as full model
+            temp_model = tf.keras.models.load_model(
+                path,
+                compile=False,
+                custom_objects=None
+            )
+            model.set_weights(temp_model.get_weights())
+        
+        # Compile the model
+        model.compile(optimizer='adam', loss='mse')
+        return model
+    except Exception as e:
+        logger.error(f"Error loading deep learning model: {str(e)}")
+        raise RuntimeError(f"Failed to load deep learning model: {str(e)}")
+
+# Load both models with error handling
+try:
+    model1 = load_traditional_model('Moscowregion.pkl')
+    model2 = load_deep_learning_model('model2.h5')
+    logger.info("Both models loaded successfully")
+except Exception as e:
+    logger.error(f"Failed to load models: {str(e)}")
+    # We'll continue running the app, but some endpoints might not work
 
 app = FastAPI(
     title="Moscow Apartment Price Prediction API",
