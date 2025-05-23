@@ -26,6 +26,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy the application
 COPY app.py .
 COPY Moscowregion.pkl .
+COPY model2.h5 .
 COPY static static/
 
 # Create non-root user

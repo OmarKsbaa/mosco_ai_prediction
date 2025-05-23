@@ -5,9 +5,11 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 import joblib
 import numpy as np
+import tensorflow as tf
 
-# Load the trained model
-model = joblib.load('Moscowregion.pkl')
+# Load both models
+model1 = joblib.load('Moscowregion.pkl')
+model2 = tf.keras.models.load_model('model2.h5')
 
 app = FastAPI(
     title="Moscow Apartment Price Prediction API",
@@ -40,8 +42,8 @@ class ApartmentFeatures(BaseModel):
     renovation_designer: int  # 0 or 1
     renovation_without: int   # 0 or 1
 
-@app.post("/predict")
-async def predict_price(features: ApartmentFeatures):
+@app.post("/predict/model1")
+async def predict_price_model1(features: ApartmentFeatures):
     try:
         # Convert input features to numpy array in the correct order
         features_array = np.array([
@@ -59,14 +61,44 @@ async def predict_price(features: ApartmentFeatures):
         ]).reshape(1, -1)
         
         # Make prediction (log price)
-        log_price = model.predict(features_array)[0]
+        log_price = model1.predict(features_array)[0]
         
         # Convert log price back to actual price
         predicted_price = np.expm1(log_price)
         
         return {
             "predicted_price": round(predicted_price, 2),
-            "log_price": round(log_price, 4)
+            "log_price": round(log_price, 4),
+            "model_type": "traditional_ml"
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/predict/model2")
+async def predict_price_model2(features: ApartmentFeatures):
+    try:
+        # Convert input features to numpy array in the correct order
+        features_array = np.array([
+            features.apartment_type,
+            features.minutes_to_metro,
+            features.number_of_rooms,
+            features.area,
+            features.living_area,
+            features.kitchen_area,
+            features.floor,
+            features.number_of_floors,
+            features.renovation_designer,
+            features.renovation_european,
+            features.renovation_without
+        ]).reshape(1, -1)
+        
+        # Make prediction using the deep learning model
+        predicted_price = float(model2.predict(features_array)[0][0])
+        
+        return {
+            "predicted_price": round(predicted_price, 2),
+            "model_type": "deep_learning"
         }
     
     except Exception as e:

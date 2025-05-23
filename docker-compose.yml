@@ -10,6 +10,7 @@ services:
     volumes:
       - ./static:/app/static
       - ./Moscowregion.pkl:/app/Moscowregion.pkl
+      - ./model2.h5:/app/model2.h5
     environment:
       - PYTHONUNBUFFERED=1
       - MAX_WORKERS=4
@@ -26,7 +27,7 @@ services:
       resources:
         limits:
           cpus: '2'
-          memory: 2G
+          memory: 4G  # Increased for TensorFlow
         reservations:
           cpus: '1'
-          memory: 1G
+          memory: 2G  # Increased for TensorFlow
