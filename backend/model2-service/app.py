@@ -65,13 +65,14 @@ async def predict_price(features: ApartmentFeatures):
         ]).reshape(1, -1)
         
         # Make prediction using the deep learning model
-        predicted_price = float(model2.predict(features_array)[0][0])
-        
+        log_price = float(model2.predict(features_array)[0][0])
+        predicted_price = np.expm1(log_price)
         return {
             "predicted_price": round(predicted_price, 2),
+            "log_price": round(log_price, 4),
             "model_type": "deep_learning"
         }
-    
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
