@@ -20,7 +20,7 @@ RUN apt-get update && \
     pip install --no-cache-dir \
     fastapi==0.104.1 \
     uvicorn==0.24.0 \
-    numpy==1.26.2 \
+    numpy==1.23.4 \
     joblib==1.3.2 \
     pydantic==2.5.2 \
     scikit-learn==1.2.2 \
@@ -34,7 +34,7 @@ RUN apt-get update && \
 # Copy the application
 COPY app.py .
 COPY Moscowregion.pkl .
-COPY model2.h5 .
+COPY model2.keras .
 COPY static static/
 
 # Create non-root user
