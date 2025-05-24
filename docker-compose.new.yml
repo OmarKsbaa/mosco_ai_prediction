@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # API Gateway Service
   gateway:
@@ -7,7 +9,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./frontend:/app/frontend:ro
+      - ./frontend:/app/../../frontend:ro
     environment:
       - PYTHONUNBUFFERED=1
       - MODEL1_SERVICE_URL=http://model1-service:8001

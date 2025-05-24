@@ -22,7 +22,8 @@ app.add_middleware(
 )
 
 # Mount static files for frontend
-frontend_path = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
+frontend_path = os.path.join("/app", "frontend")
+print(f"Mounting frontend from: {frontend_path}")
 app.mount("/static", StaticFiles(directory=frontend_path), name="static")
 
 # Service URLs

@@ -6,7 +6,16 @@ import tensorflow as tf
 import os
 
 # Load the deep learning model
-model_path = os.path.join(os.path.dirname(__file__), 'model2.keras')
+model_path = None
+for model_file in ['model2.keras', 'model2.h5']:
+    if os.path.exists(os.path.join(os.path.dirname(__file__), model_file)):
+        model_path = os.path.join(os.path.dirname(__file__), model_file)
+        break
+
+if model_path is None:
+    raise FileNotFoundError("Could not find model file (model2.keras or model2.h5)")
+
+print(f"Loading model from: {model_path}")
 model2 = tf.keras.models.load_model(model_path, custom_objects={'InputLayer': tf.keras.layers.InputLayer})
 
 app = FastAPI(
