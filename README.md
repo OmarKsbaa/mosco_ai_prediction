@@ -1,123 +1,140 @@
-# Moscow Apartment Price Prediction
+# Moscow Apartment Price Prediction - Microservices Architecture
 
-This project provides a machine learning model to predict apartment prices in Moscow and the Moscow region. It includes both an API and a user-friendly web interface.
+This project has been restructured into a microservices architecture with separate services for each AI model and a frontend gateway.
 
-![Moscow Apartment Price Prediction](https://i.imgur.com/your-screenshot.jpg)
+## Architecture Overview
 
-## Features
-
-- 🏢 Predict apartment prices based on multiple features
-- 🌐 Modern web interface
-- 🚀 FastAPI backend
-- 🐳 Docker support
-- 📊 Machine learning model trained on Moscow real estate data
-
-## Prerequisites
-
-### Installing Docker Desktop
-
-#### Windows
-1. Visit [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
-2. Click "Download for Windows"
-3. Double-click the downloaded installer (.exe)
-4. Follow the installation wizard
-5. Ensure "WSL 2" is installed when prompted
-6. After installation, restart your computer
-7. Docker Desktop will start automatically
-
-#### macOS
-1. Visit [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/)
-2. Click "Download for Mac"
-3. Choose your chip (Apple or Intel)
-4. Double-click the downloaded .dmg file
-5. Drag Docker to Applications
-6. Open Docker from Applications folder
-7. Follow the installation prompts
-
-#### Linux
-1. For Ubuntu/Debian:
-```bash
-# Add Docker's official GPG key
-sudo apt-get update
-sudo apt-get install ca-certificates curl gnupg
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-sudo chmod a+r /etc/apt/keyrings/docker.gpg
-
-# Add the repository to Apt sources
-echo \
-  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# Install Docker packages
-sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Frontend (Port 8000)                     │
+│                     Static Files + Gateway                      │
+└─────────────────┬───────────────────────────────────────────────┘
+                  │
+            ┌─────▼─────┐
+            │  Gateway  │
+            │ (Port 8000)│
+            └─────┬─────┘
+                  │
+        ┌─────────┼─────────┐
+        │                   │
+   ┌────▼────┐         ┌────▼────┐
+   │ Model 1 │         │ Model 2 │
+   │Traditional│       │Deep Learning│
+   │ML Service│        │ Service │
+   │(Port 8001)│       │(Port 8002)│
+   └─────────┘         └─────────┘
 ```
 
-2. Verify installation:
-```bash
-docker --version
-docker compose version
+## Services
+
+### 1. Gateway Service (Port 8000)
+- **Location**: `backend/gateway/`
+- **Purpose**: API Gateway and static file server
+- **Responsibilities**:
+  - Serves the frontend application
+  - Routes prediction requests to appropriate model services
+  - Handles CORS and load balancing
+  - Health checks for all services
+
+### 2. Model 1 Service (Port 8001)
+- **Location**: `backend/model1-service/`
+- **Purpose**: Traditional Machine Learning model
+- **Model**: `Moscowregion.pkl` (scikit-learn)
+- **Features**: 
+  - Returns both predicted price and log price
+  - Lighter resource requirements
+  - Faster prediction times
+
+### 3. Model 2 Service (Port 8002)
+- **Location**: `backend/model2-service/`
+- **Purpose**: Deep Learning model
+- **Model**: `model2.keras` (TensorFlow)
+- **Features**:
+  - Neural network-based predictions
+  - Higher resource requirements
+  - Potentially more complex pattern recognition
+
+## Directory Structure
+
+```
+mosco_ai_prediction/
+├── frontend/                    # Frontend static files
+│   └── index.html              # Main web interface
+├── backend/
+│   ├── gateway/                # API Gateway service
+│   │   ├── app.py             # Gateway FastAPI application
+│   │   ├── requirements.txt   # Gateway dependencies
+│   │   └── Dockerfile         # Gateway container config
+│   ├── model1-service/        # Traditional ML service
+│   │   ├── app.py            # Model 1 FastAPI application
+│   │   ├── Moscowregion.pkl  # Traditional ML model
+│   │   ├── requirements.txt  # Model 1 dependencies
+│   │   └── Dockerfile        # Model 1 container config
+│   └── model2-service/        # Deep Learning service
+│       ├── app.py            # Model 2 FastAPI application
+│       ├── model2.keras      # Deep learning model
+│       ├── requirements.txt  # Model 2 dependencies
+│       └── Dockerfile        # Model 2 container config
+├── docker-compose.yml         # Multi-service orchestration
+└── README.md                  # This file
 ```
 
-### System Requirements
+## Getting Started
 
-- **Windows**:
-  - Windows 10/11 64-bit: Pro, Enterprise, or Education (Build 18362 or later)
-  - WSL 2 (Windows Subsystem for Linux 2)
-  - 4GB RAM (8GB recommended)
-  - CPU with hardware virtualization support
+### Prerequisites
+- Docker and Docker Compose
+- At least 4GB of available RAM (for TensorFlow service)
 
-- **macOS**:
-  - macOS 11 or newer (Intel or Apple Silicon)
-  - At least 4GB RAM (8GB recommended)
-  - VirtualBox prior to version 6.0 must not be installed
+### Running the Application
 
-- **Linux**:
-  - 64-bit kernel and CPU support for virtualization
-  - 4GB RAM (8GB recommended)
-  - systemd init system
-  - KVM virtualization support
+1. **Build and start all services**:
+   ```bash
+   docker-compose up --build
+   ```
 
-## Quick Start
+2. **Start in background**:
+   ```bash
+   docker-compose up -d --build
+   ```
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/mosco_ai_prediction.git
-cd mosco_ai_prediction
-```
+3. **View logs**:
+   ```bash
+   # All services
+   docker-compose logs -f
+   
+   # Specific service
+   docker-compose logs -f gateway
+   docker-compose logs -f model1-service
+   docker-compose logs -f model2-service
+   ```
 
-2. Start the application using Docker Compose:
-```bash
-docker-compose up --build
-```
+4. **Stop services**:
+   ```bash
+   docker-compose down
+   ```
 
-3. Access the web interface:
-   - Open your browser and navigate to [http://localhost:8000](http://localhost:8000)
-   - The API documentation is available at [http://localhost:8000/docs](http://localhost:8000/docs)
+### Access Points
 
-## Features Used in Prediction
+- **Main Application**: http://localhost:8000
+- **Gateway Health**: http://localhost:8000/health
+- **Model 1 Service**: http://localhost:8001/health
+- **Model 2 Service**: http://localhost:8002/health
 
-The model takes into account the following features:
-- Minutes to metro station
-- Number of rooms
-- Total area (m²)
-- Living area (m²)
-- Kitchen area (m²)
-- Floor number
-- Total floors in building
-- Apartment type (Secondary/New building)
-- Renovation type (European/Designer/Without renovation)
+### API Endpoints
 
-## API Endpoints
+#### Gateway Service (Port 8000)
+- `GET /` - Redirects to frontend
+- `GET /static/index.html` - Frontend application
+- `POST /predict/model1` - Predict using traditional ML model
+- `POST /predict/model2` - Predict using deep learning model
+- `GET /health` - Health check for all services
 
-### Predict Price
-```http
-POST /predict
-```
+#### Model Services (Ports 8001, 8002)
+- `POST /predict` - Make prediction
+- `GET /health` - Service health check
 
-Request body example:
+### Request Format
+
 ```json
 {
   "minutes_to_metro": 15,
@@ -134,130 +151,65 @@ Request body example:
 }
 ```
 
-Response example:
+### Response Format
+
+**Model 1 (Traditional ML)**:
 ```json
 {
-  "predicted_price": 15000000.00,
-  "log_price": 16.5234
+  "predicted_price": 8500000.50,
+  "log_price": 15.9534,
+  "model_type": "traditional_ml"
 }
 ```
 
-## Development Setup
-
-If you want to run the application without Docker:
-
-1. Create a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+**Model 2 (Deep Learning)**:
+```json
+{
+  "predicted_price": 8750000.25,
+  "model_type": "deep_learning"
+}
 ```
 
-2. Install dependencies:
+## Development
+
+### Running Individual Services
+
+Each service can be run independently for development:
+
 ```bash
+# Gateway
+cd backend/gateway
 pip install -r requirements.txt
+uvicorn app:app --host 0.0.0.0 --port 8000
+
+# Model 1 Service
+cd backend/model1-service
+pip install -r requirements.txt
+uvicorn app:app --host 0.0.0.0 --port 8001
+
+# Model 2 Service
+cd backend/model2-service
+pip install -r requirements.txt
+uvicorn app:app --host 0.0.0.0 --port 8002
 ```
 
-3. Run the application:
-```bash
-uvicorn app:app --reload
-```
+### Environment Variables
 
-## Project Structure
+- `MODEL1_SERVICE_URL`: URL for Model 1 service (default: http://model1-service:8001)
+- `MODEL2_SERVICE_URL`: URL for Model 2 service (default: http://model2-service:8002)
+- `TF_CPP_MIN_LOG_LEVEL`: TensorFlow logging level (default: 2)
 
-```
-.
-├── app.py                 # FastAPI application
-├── Moscowregion.pkl        # Trained machine learning model
-├── requirements.txt       # Python dependencies
-├── static/               # Static files
-│   └── index.html        # Web interface
-├── Dockerfile            # Docker configuration
-└── docker-compose.yml    # Docker Compose configuration
-```
+## Resource Requirements
 
-## Environment Variables
+- **Gateway**: 0.25-0.5 CPU cores, 256-512MB RAM
+- **Model 1 Service**: 0.5-1 CPU cores, 512MB-1GB RAM
+- **Model 2 Service**: 1-2 CPU cores, 1.5-3GB RAM
 
-The following environment variables can be configured in docker-compose.yml:
+## Benefits of This Architecture
 
-- `MAX_WORKERS`: Number of worker processes (default: 4)
-- `WORKERS_PER_CORE`: Workers per CPU core (default: 1)
-- `TIMEOUT`: Worker timeout in seconds (default: 120)
-
-## Troubleshooting Docker Installation
-
-### Windows
-1. **WSL 2 Issues**
-   - Run PowerShell as Administrator and execute:
-   ```powershell
-   wsl --update
-   ```
-   - If WSL is not installed:
-   ```powershell
-   wsl --install
-   ```
-
-2. **Virtualization Issues**
-   - Enable virtualization in BIOS/UEFI
-   - Ensure Hyper-V is enabled:
-   ```powershell
-   Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
-   ```
-
-3. **Docker Desktop Won't Start**
-   - Reset Docker to factory defaults
-   - Ensure all Windows updates are installed
-   - Check Windows Security settings
-
-### macOS
-1. **Installation Fails**
-   - Clear existing Docker data:
-   ```bash
-   rm -rf ~/.docker
-   ```
-   - Reset Docker preferences
-   - Ensure sufficient disk space (at least 10GB free)
-
-2. **Performance Issues**
-   - Adjust resource allocation in Docker Desktop settings
-   - Clear unused Docker data:
-   ```bash
-   docker system prune -a
-   ```
-
-### Linux
-1. **Permission Issues**
-   - Add user to docker group:
-   ```bash
-   sudo usermod -aG docker $USER
-   newgrp docker
-   ```
-
-2. **Service Won't Start**
-   - Check Docker service status:
-   ```bash
-   sudo systemctl status docker
-   ```
-   - Restart Docker service:
-   ```bash
-   sudo systemctl restart docker
-   ```
-
-For additional help, visit the [Docker Documentation](https://docs.docker.com/) or [Docker Forums](https://forums.docker.com/).
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Data source: [Your data source]
-- Built with [FastAPI](https://fastapi.tiangolo.com/)
-- ML model built using scikit-learn
+1. **Scalability**: Each model can be scaled independently
+2. **Isolation**: Model failures don't affect other services
+3. **Maintainability**: Each service has its own dependencies
+4. **Deployment**: Services can be deployed and updated separately
+5. **Resource Optimization**: Different resource allocations per service
+6. **Development**: Teams can work on different models independently
